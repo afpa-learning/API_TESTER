@@ -1,0 +1,27 @@
+# Environnement virtuel
+venv/
+env/
+.venv/
+
+# Bytecode Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Base de données locale
+db.sqlite3
+db.sqlite3-journal
+
+# Variables d'environnement
+.env
+.env.*
+
+# Fichiers Django
+*.log
+media/
+
+# Éditeurs / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
