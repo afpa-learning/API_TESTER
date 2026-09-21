@@ -3,3 +3,19 @@
 <form>
     {% csrf_token %}
 </form>
+
+<h2>Historique (10 derniers tests)</h2>
+<ul>
+    {% for log in history %}
+    <li>
+        {{ log.method }} — {{ log.url }} —
+        {% if log.status_code %}{{ log.status_code }}{% else %}Erreur{% endif %} —
+        {# response_time est stocké en secondes en base ; widthratio le multiplie par 1000 #}
+        {# ici pour l'afficher en millisecondes, cohérent avec ce que renvoie test_api_view au client #}
+        {% if log.response_time %}{% widthratio log.response_time 1 1000 %} ms{% else %}—{% endif %} —
+        {{ log.created_at }}
+    </li>
+    {% empty %}
+    <li>Aucun test effectué pour l'instant.</li>
+    {% endfor %}
+</ul>
