@@ -45,9 +45,15 @@ Structure Django classique en deux parties :
     `error_message`, `created_at`). Le tri par défaut est du plus récent au plus ancien
     (`-created_at`), cohérent avec son usage en tant qu'historique de requêtes. La
     migration `0001_initial` est appliquée.
-  - `views.py`, `urls.py` — pas encore implémentés (`urlpatterns = []`) ; rien n'est
-    branché en dehors de l'admin Django.
-  - `templates/api_tester/`, `static/api_tester/{css,js}/` — scaffoldés mais vides.
+  - `views.py`, `urls.py` — routage et squelettes de vues posés, sans logique métier :
+    `index_view` (GET `/`, name `index`) rend `templates/api_tester/index.html` ;
+    `test_api_view` (POST `/api/test/`, name `test_api` ; `HttpResponseNotAllowed` sur
+    les autres méthodes) renvoie pour l'instant un `JsonResponse` statique. Le parsing
+    du body JSON, l'appel `requests`, la mesure du temps de réponse et la création de
+    l'`ApiLog` restent à faire (TODO explicites dans le code).
+  - `templates/api_tester/index.html` — squelette minimal (`<h1>` + `<form>` avec
+    `{% csrf_token %}`), pas encore la structure Bootstrap complète (session dédiée à
+    venir). `static/api_tester/{css,js}/` toujours scaffoldés mais vides.
 
 Comme le front communique avec le backend en JSON strict (et non via des formulaires
 HTML/FormData), les vues à construire ici devront parser `request.body` en JSON et
