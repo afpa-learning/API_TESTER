@@ -17,7 +17,7 @@
         <div class="col-lg-7">
             <h1 class="mb-4">Testeur d'API HTTP</h1>
 
-            <!-- soumission gérée en JS (fetch) à partir de la session 9 ; pas d'action/method ici -->
+            <!-- soumission gérée en JS (fetch, cf. main.js) ; pas d'action/method ici -->
             <form id="test-form" class="mb-4">
                 {% csrf_token %}
                 <div class="row g-2">
@@ -52,7 +52,7 @@
                 </div>
             </form>
 
-            <!-- résultat peuplé dynamiquement en session 10 -->
+            <!-- résultat peuplé dynamiquement par main.js (displayResult/displayValidationError/displayFetchError) -->
             <div id="result-panel" class="card">
                 <div class="card-body">
                     <p class="card-text text-muted mb-0">Aucun test exécuté.</p>
@@ -64,7 +64,7 @@
         <div class="col-lg-5">
             <h2 class="mb-4">Historique</h2>
 
-            <!-- conteneur stable pour l'insertion dynamique de cartes en session 11 -->
+            <!-- conteneur stable : main.js y insère aussi des cartes dynamiquement (createHistoryCard) -->
             <div id="history-list" class="d-flex flex-column gap-3">
                 {% for log in history %}
                 <div class="card" data-method="{{ log.method }}" data-url="{{ log.url }}">

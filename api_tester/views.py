@@ -1,4 +1,5 @@
 import json
+from urllib.parse import urlparse
 
 import requests
 from django.http import HttpResponseNotAllowed, JsonResponse
@@ -7,6 +8,16 @@ from django.shortcuts import render
 from .models import ApiLog
 
 # Création des views
+
+# Note sur la sécurité (SSRF) : test_api_view effectue, sur demande de l'utilisateur,
+# des requêtes HTTP sortantes (GET/POST/PUT/DELETE, avec payload arbitraire pour
+# PUT/POST) vers une URL également fournie par l'utilisateur. C'est le principe même
+# de l'outil, mais c'est aussi un vecteur SSRF classique (scanner un réseau interne,
+# interroger des services non exposés publiquement, etc.). La validation de schéma
+# (http/https uniquement) ci-dessous est un garde-fou minimal ; elle ne remplace pas,
+# en production, une liste blanche de domaines/IP autorisés et un blocage explicite
+# des plages d'IP privées/internes (10.0.0.0/8, 127.0.0.0/8, 169.254.0.0/16, etc.) —
+# hors périmètre de ce projet pédagogique.
 
 
 def index_view(request):
@@ -26,6 +37,13 @@ def test_api_view(request):
     if not method or not url:
         return JsonResponse(
             {"error": "Les champs 'method' et 'url' sont requis."}, status=400
+        )
+
+    # Schéma HTTP/HTTPS uniquement (CDC §3.2) : rejette ftp://, file://, etc.
+    # avant tout appel sortant, quel que soit le payload fourni.
+    if urlparse(url).scheme.lower() not in ('http', 'https'):
+        return JsonResponse(
+            {"error": "L'URL doit utiliser le schéma http ou https."}, status=400
         )
 
     method = method.upper()
@@ -98,7 +116,7 @@ def test_api_view(request):
     try:
         response_body = response.json()
     except ValueError:
-        # Réponse non-JSON : traitement affiné en session gestion d'erreurs
+        # Réponse non-JSON : on renvoie le texte brut (signalé comme tel côté client).
         response_body = response.text
 
     ApiLog.objects.create(
