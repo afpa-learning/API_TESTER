@@ -9,6 +9,8 @@ class ApiLog(models.Model):
     METHOD_CHOICES = [
         ('GET', 'GET'),
         ('POST', 'POST'),
+        ('PUT', 'PUT'),
+        ('DELETE', 'DELETE'),
     ]
 
     url = models.URLField(max_length=2048)

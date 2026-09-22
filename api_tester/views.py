@@ -21,22 +21,42 @@ def test_api_view(request):
     data = json.loads(request.body)
     method = data.get('method')
     url = data.get('url')
+    payload = data.get('payload')
 
     if not method or not url:
         return JsonResponse(
             {"error": "Les champs 'method' et 'url' sont requis."}, status=400
         )
 
+    method = method.upper()
+    valid_methods = dict(ApiLog.METHOD_CHOICES)
+    if method not in valid_methods:
+        return JsonResponse(
+            {"error": "La méthode doit être GET, POST, PUT ou DELETE."}, status=400
+        )
+
+    # GET/DELETE n'envoient normalement pas de corps : un payload fourni par erreur
+    # pour ces méthodes est ignoré plutôt que de bloquer le test avec une 400.
+    if method in ('POST', 'PUT') and payload is not None:
+        request_kwargs = {"timeout": 5, "json": payload}
+    else:
+        payload = None
+        request_kwargs = {"timeout": 5}
+
+    dispatch = {
+        'GET': requests.get,
+        'POST': requests.post,
+        'PUT': requests.put,
+        'DELETE': requests.delete,
+    }
+
     try:
-        if method.upper() == 'GET':
-            response = requests.get(url, timeout=5)
-        else:
-            response = requests.post(url, timeout=5)
+        response = dispatch[method](url, **request_kwargs)
     except requests.exceptions.Timeout:
         error_message = "La requête a expiré (timeout)."
         ApiLog.objects.create(
             url=url,
-            method=method.upper(),
+            method=method,
             status_code=None,
             response_time=None,
             error_message=error_message,
@@ -50,7 +70,7 @@ def test_api_view(request):
         error_message = "Impossible de joindre l'hôte."
         ApiLog.objects.create(
             url=url,
-            method=method.upper(),
+            method=method,
             status_code=None,
             response_time=None,
             error_message=error_message,
@@ -64,7 +84,7 @@ def test_api_view(request):
         error_message = f"Erreur lors de l'appel à l'API : {exc}"
         ApiLog.objects.create(
             url=url,
-            method=method.upper(),
+            method=method,
             status_code=None,
             response_time=None,
             error_message=error_message,
@@ -83,10 +103,10 @@ def test_api_view(request):
 
     ApiLog.objects.create(
         url=url,
-        method=method.upper(),
+        method=method,
         status_code=response.status_code,
         response_time=response.elapsed.total_seconds(),  # en secondes, cf. models.py
-        payload_sent=data,
+        payload_sent=payload,
         response_body=response_body,
     )
 
